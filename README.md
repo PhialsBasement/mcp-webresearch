@@ -6,7 +6,7 @@ Bring real-time info into Claude and easily research any topic.
 
 ## Features
 
-- Google search integration
+- Google search integration --- THIS FORK FIXES THIS --- NOW NO LONGER GETTING CAPTCHA BLOCKED
 - Webpage content extraction
 - Research session tracking (list of visited pages, search queries, etc.)
 - Screenshot capture
@@ -120,7 +120,8 @@ pnpm dev
 ## Verified Platforms
 
 - [x] macOS
-- [ ] Linux
+- [x] Linux
+- [x] Windows
 
 ## License
 
