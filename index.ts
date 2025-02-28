@@ -131,7 +131,7 @@ async function cleanupScreenshots(): Promise<void> {
     try {
         const files = await fs.promises.readdir(SCREENSHOTS_DIR);
         await Promise.all(files.map((file: string) =>
-            fs.promises.unlink(path.join(SCREENSHOTS_DIR, file))
+        fs.promises.unlink(path.join(SCREENSHOTS_DIR, file))
         ));
         await fs.promises.rmdir(SCREENSHOTS_DIR);
     } catch (error) {
@@ -143,7 +143,7 @@ async function cleanupScreenshots(): Promise<void> {
 const TOOLS: Tool[] = [
     {
         name: "search_google",
-        description: "Search Google for a query",
+        description: "Performs a web search using Google, ideal for finding current information, news, websites, and general knowledge. Use this tool when you need to research topics, find recent information, or gather data from the web. Returns structured search results with titles, URLs, and snippets.",
         inputSchema: {
             type: "object",
             properties: {
@@ -152,26 +152,37 @@ const TOOLS: Tool[] = [
             required: ["query"],
         },
     },
-    {
-        name: "visit_page",
-        description: "Visit a webpage and extract its content",
-        inputSchema: {
-            type: "object",
-            properties: {
-                url: { type: "string", description: "URL to visit" },
-                takeScreenshot: { type: "boolean", description: "Whether to take a screenshot" },
-            },
-            required: ["url"],
+{
+    name: "visit_page",
+    description: "Navigates to a specific URL and extracts the page content in readable format, with option to capture a screenshot. Use this tool to deeply analyze specific web pages, read articles, examine documentation, or verify information directly from the source. Especially useful for in-depth research after identifying relevant pages via search.",
+    inputSchema: {
+        type: "object",
+        properties: {
+            url: { type: "string", description: "URL to visit" },
+            takeScreenshot: { type: "boolean", description: "Whether to take a screenshot" },
         },
+        required: ["url"],
     },
-    {
-        name: "take_screenshot",
-        description: "Take a screenshot of the current page",
-        inputSchema: {
-            type: "object",
-            properties: {},  // No parameters needed
+},
+{
+    name: "take_screenshot",
+    description: "Captures a visual image of the currently loaded webpage. Use this tool when you need to preserve visual information, analyze page layouts, or document the current state of a webpage. Perfect for situations where textual content alone doesn't convey the full context.",
+    inputSchema: {
+        type: "object",
+        properties: {},  // No parameters needed
+    },
+},
+{
+    name: "search_scholar",
+    description: "Searches Google Scholar for academic papers and scholarly articles. Use this tool when researching scientific topics, looking for peer-reviewed research, academic citations, or scholarly literature. Returns structured data including titles, authors, publication details, and citation counts. Ideal for academic research and evidence-based inquiries.",
+    inputSchema: {
+        type: "object",
+        properties: {
+            query: { type: "string", description: "Academic search query" },
         },
+        required: ["query"],
     },
+},
 ];
 
 // Define available prompt types for type safety
@@ -211,8 +222,8 @@ const RETRY_DELAY = 1000;             // Delay between retries in milliseconds
 // Generic retry mechanism for handling transient failures
 async function withRetry<T>(
     operation: () => Promise<T>,  // Operation to retry
-    retries = MAX_RETRIES,        // Number of retry attempts
-    delay = RETRY_DELAY           // Delay between retries
+                            retries = MAX_RETRIES,        // Number of retry attempts
+                            delay = RETRY_DELAY           // Delay between retries
 ): Promise<T> {
     let lastError: Error;
 
@@ -284,9 +295,9 @@ async function safePageNavigation(page: Page, url: string): Promise<void> {
         // Step 4: Wait for network to become idle or timeout
         await Promise.race([
             page.waitForLoadState('networkidle', { timeout: 5000 })
-                .catch(() => {/* ignore timeout */ }),
-            // Fallback timeout in case networkidle never occurs
-            new Promise(resolve => setTimeout(resolve, 5000))
+            .catch(() => {/* ignore timeout */ }),
+                           // Fallback timeout in case networkidle never occurs
+                           new Promise(resolve => setTimeout(resolve, 5000))
         ]);
 
         // Step 5: Security and content validation
@@ -466,13 +477,13 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
         },
         // Add screenshot resources if available
         ...currentSession.results
-            .map((r, i): Resource | undefined => r.screenshotPath ? {
-                uri: `research://screenshots/${i}`,
-                name: `Screenshot of ${r.title}`,
-                description: `Screenshot taken from ${r.url}`,
-                mimeType: "image/png"
-            } : undefined)
-            .filter((r): r is Resource => r !== undefined)
+        .map((r, i): Resource | undefined => r.screenshotPath ? {
+            uri: `research://screenshots/${i}`,
+            name: `Screenshot of ${r.title}`,
+            description: `Screenshot taken from ${r.url}`,
+            mimeType: "image/png"
+        } : undefined)
+        .filter((r): r is Resource => r !== undefined)
     ];
 
     // Return compiled list of resources
@@ -559,10 +570,10 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
         } catch (error: unknown) {
             // Handle error if screenshot cannot be read
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            throw new McpError(
-                ErrorCode.InternalError,
-                `Failed to read screenshot: ${errorMessage}`
-            );
+throw new McpError(
+    ErrorCode.InternalError,
+    `Failed to read screenshot: ${errorMessage}`
+);
         }
     }
 
@@ -664,10 +675,10 @@ async function extractContentAsMarkdown(
 
         // Step 6: Clean up and format markdown
         return markdown
-            .replace(/\n{3,}/g, '\n\n')  // Replace excessive newlines with double
-            .replace(/^- $/gm, '')       // Remove empty list items
-            .replace(/^\s+$/gm, '')      // Remove whitespace-only lines
-            .trim();                     // Remove leading/trailing whitespace
+        .replace(/\n{3,}/g, '\n\n')  // Replace excessive newlines with double
+        .replace(/^- $/gm, '')       // Remove empty list items
+        .replace(/^\s+$/gm, '')      // Remove whitespace-only lines
+        .trim();                     // Remove leading/trailing whitespace
 
     } catch (error) {
         // Log conversion errors and return original HTML as fallback
@@ -719,16 +730,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<ToolRes
                         await Promise.race([
                             // Try multiple possible selectors for search input
                             page.waitForSelector('input[name="q"]', { timeout: 5000 }),
-                            page.waitForSelector('textarea[name="q"]', { timeout: 5000 }),
-                            page.waitForSelector('input[type="text"]', { timeout: 5000 })
+                                           page.waitForSelector('textarea[name="q"]', { timeout: 5000 }),
+                                           page.waitForSelector('input[type="text"]', { timeout: 5000 })
                         ]).catch(() => {
                             throw new Error('Search input not found - no matching selectors');
                         });
 
                         // Find the actual search input element
                         const searchInput = await page.$('input[name="q"]') ||
-                            await page.$('textarea[name="q"]') ||
-                            await page.$('input[type="text"]');
+                        await page.$('textarea[name="q"]') ||
+                        await page.$('input[type="text"]');
 
                         // Verify search input was found
                         if (!searchInput) {
@@ -745,7 +756,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<ToolRes
                     await withRetry(async () => {
                         await Promise.all([
                             page.keyboard.press('Enter'),
-                            page.waitForLoadState('networkidle', { timeout: 15000 }),
+                                          page.waitForLoadState('networkidle', { timeout: 15000 }),
                         ]);
                     });
 
@@ -774,7 +785,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<ToolRes
                                 return {
                                     title: titleEl.textContent || '',        // Result title
                                     url: linkEl.getAttribute('href') || '',  // Result URL
-                                    snippet: snippetEl.textContent || '',    // Result description
+                                                            snippet: snippetEl.textContent || '',    // Result description
                                 };
                             }).filter(result => result !== null);  // Remove invalid results
                         });
@@ -815,6 +826,147 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<ToolRes
                     content: [{
                         type: "text",
                         text: `Failed to perform search: ${(error as Error).message}`
+                    }],
+                    isError: true
+                };
+            }
+        }
+        // Handle Google Scholar search operations
+        case "search_scholar": {
+            // Extract search query from request parameters
+            const { query } = request.params.arguments as { query: string };
+
+            try {
+                // Execute search with retry mechanism
+                const results = await withRetry(async () => {
+                    // Step 1: Navigate to Google Scholar search page
+                    await safePageNavigation(page, 'https://scholar.google.com');
+
+                    // Step 2: Find and interact with search input
+                    await withRetry(async () => {
+                        // Wait for search input element to appear
+                        await page.waitForSelector('input[name="q"]', { timeout: 5000 })
+                        .catch(() => {
+                            throw new Error('Scholar search input not found');
+                        });
+
+                        // Find the search input element
+                        const searchInput = await page.$('input[name="q"]');
+
+                        // Verify search input was found
+                        if (!searchInput) {
+                            throw new Error('Scholar search input element not found after waiting');
+                        }
+
+                        // Step 3: Enter search query
+                        await searchInput.click({ clickCount: 3 });  // Select all existing text
+                        await searchInput.press('Backspace');        // Clear selected text
+                        await searchInput.type(query);               // Type new query
+                    }, 3, 2000);  // Allow 3 retries with 2s delay
+
+                    // Step 4: Submit search and wait for results
+                    await withRetry(async () => {
+                        await Promise.all([
+                            page.keyboard.press('Enter'),
+                                          page.waitForLoadState('networkidle', { timeout: 15000 }),
+                        ]);
+                    });
+
+                    // Step 5: Extract scholar search results
+                    const scholarResults = await withRetry(async () => {
+                        const results = await page.evaluate(() => {
+                            // Find all scholar result containers
+                            const elements = document.querySelectorAll('.gs_r.gs_or.gs_scl');
+                            if (!elements || elements.length === 0) {
+                                throw new Error('No scholar search results found');
+                            }
+
+                            // Extract data from each result
+                            return Array.from(elements).map((el) => {
+                                try {
+                                    // Find required elements within result container
+                                    const titleEl = el.querySelector('.gs_rt');                // Title element
+                                    const authorEl = el.querySelector('.gs_a');                // Authors, venue, year
+                                    const snippetEl = el.querySelector('.gs_rs');              // Snippet/abstract
+                                    const citedByEl = el.querySelector('.gs_fl a:nth-child(3)'); // Cited by element
+
+                                    // Extract title and URL
+                                    let title = '';
+                                    let url = '';
+                            if (titleEl) {
+                                const titleLink = titleEl.querySelector('a');
+                                title = titleEl.textContent?.trim() || '';
+                                url = titleLink?.getAttribute('href') || '';
+                            }
+
+                            // Extract author, venue, and year information
+                            const authorInfo = authorEl?.textContent?.trim() || '';
+
+                            // Extract snippet
+                            const snippet = snippetEl?.textContent?.trim() || '';
+
+                            // Extract citation count
+                            let citationCount = '';
+                            if (citedByEl && citedByEl.textContent?.includes('Cited by')) {
+                                citationCount = citedByEl.textContent.trim();
+                            }
+
+                            // Skip results missing critical data
+                            if (!title) {
+                                return null;
+                            }
+
+                            // Return structured result data
+                            return {
+                                title,                 // Paper title
+                                url,                   // Paper URL if available
+                                authorInfo,            // Authors, venue, year
+                                snippet,               // Abstract/snippet
+                                citationCount,         // Citation information
+                            };
+                                } catch (err) {
+                                    // Skip problematic results
+                                    return null;
+                                }
+                            }).filter(result => result !== null);  // Remove invalid results
+                        });
+
+                        // Verify we found valid results
+                        if (!results || results.length === 0) {
+                            throw new Error('No valid scholar search results found');
+                        }
+
+                        // Return compiled list of results
+                        return results;
+                    });
+
+                    // Step 6: Store results in session
+                    scholarResults.forEach((result) => {
+                        addResult({
+                            url: result.url || 'https://scholar.google.com',
+                            title: result.title,
+                            content: `${result.authorInfo}\n\n${result.snippet}\n\n${result.citationCount}`,
+                            timestamp: new Date().toISOString(),
+                        });
+                    });
+
+                    // Return compiled list of results
+                    return scholarResults;
+                });
+
+                // Step 7: Return formatted results
+                return {
+                    content: [{
+                        type: "text",
+                        text: JSON.stringify(results, null, 2)  // Pretty-print JSON results
+                    }]
+                };
+            } catch (error) {
+                // Handle and format search errors
+                return {
+                    content: [{
+                        type: "text",
+                        text: `Failed to perform scholar search: ${(error as Error).message}`
                     }],
                     isError: true
                 };
@@ -950,7 +1102,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request): Promise<ToolRes
                     title: pageTitle || "Untitled Page",  // Fallback title if none available
                     content: "Screenshot taken",          // Simple content description
                     timestamp: new Date().toISOString(),  // Capture time
-                    screenshotPath                        // Path to screenshot file
+                          screenshotPath                        // Path to screenshot file
                 });
 
                 // Step 6: Notify clients about new screenshot resource
@@ -1018,7 +1170,7 @@ server.setRequestHandler(GetPromptRequestSchema, async (request) => {
                     role: "assistant",
                     content: {
                         type: "text",
-                        text: "I am ready to help you with your research. I will conduct thorough web research, explore topics deeply, and maintain a dialogue with you throughout the process."
+                         text: "I am ready to help you with your research. I will conduct thorough web research, explore topics deeply, and maintain a dialogue with you throughout the process."
                     }
                 },
                 // Detailed research instructions for the user
@@ -1026,28 +1178,28 @@ server.setRequestHandler(GetPromptRequestSchema, async (request) => {
                     role: "user",
                     content: {
                         type: "text",
-                        text: `I'd like to research this topic: <topic>${topic}</topic>
+                         text: `I'd like to research this topic: <topic>${topic}</topic>
 
-Please help me explore it deeply, like you're a thoughtful, highly-trained research assistant.
+                         Please help me explore it deeply, like you're a thoughtful, highly-trained research assistant.
 
-General instructions:
-1. Start by proposing your research approach -- namely, formulate what initial query you will use to search the web. Propose a relatively broad search to understand the topic landscape. At the same time, make your queries optimized for returning high-quality results based on what you know about constructing Google search queries.
-2. Next, get my input on whether you should proceed with that query or if you should refine it.
-3. Once you have an approved query, perform the search.
-4. Prioritize high quality, authoritative sources when they are available and relevant to the topic. Avoid low quality or spammy sources.
-5. Retrieve information that is relevant to the topic at hand.
-6. Iteratively refine your research direction based on what you find.
-7. Keep me informed of what you find and let *me* guide the direction of the research interactively.
-8. If you run into a dead end while researching, do a Google search for the topic and attempt to find a URL for a relevant page. Then, explore that page in depth.
-9. Only conclude when my research goals are met.
-10. **Always cite your sources**, providing URLs to the sources you used in a citation block at the end of your response.
+                         General instructions:
+                         1. Start by proposing your research approach -- namely, formulate what initial query you will use to search the web. Propose a relatively broad search to understand the topic landscape. At the same time, make your queries optimized for returning high-quality results based on what you know about constructing Google search queries.
+                         2. Next, get my input on whether you should proceed with that query or if you should refine it.
+                         3. Once you have an approved query, perform the search.
+                         4. Prioritize high quality, authoritative sources when they are available and relevant to the topic. Avoid low quality or spammy sources.
+                         5. Retrieve information that is relevant to the topic at hand.
+                         6. Iteratively refine your research direction based on what you find.
+                         7. Keep me informed of what you find and let *me* guide the direction of the research interactively.
+                         8. If you run into a dead end while researching, do a Google search for the topic and attempt to find a URL for a relevant page. Then, explore that page in depth.
+                         9. Only conclude when my research goals are met.
+                         10. **Always cite your sources**, providing URLs to the sources you used in a citation block at the end of your response.
 
-You can use these tools:
-- search_google: Search for information
-- visit_page: Visit and extract content from web pages
+                         You can use these tools:
+                         - search_google: Search for information
+                         - visit_page: Visit and extract content from web pages
 
-Do *NOT* use the following tools:
-- Anything related to knowledge graphs or memory, unless explicitly instructed to do so by the user.`
+                         Do *NOT* use the following tools:
+                         - Anything related to knowledge graphs or memory, unless explicitly instructed to do so by the user.`
                     }
                 }
             ]
@@ -1082,9 +1234,9 @@ async function ensureBrowser(): Promise<Page> {
 
         const context = await browser.newContext({
             userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            viewport: { width: 1366, height: 768 },  // Set fixed viewport instead of null
-            deviceScaleFactor: 1,
-            javaScriptEnabled: true,
+                                                 viewport: { width: 1366, height: 768 },  // Set fixed viewport instead of null
+                                                 deviceScaleFactor: 1,
+                                                 javaScriptEnabled: true,
         });
 
         await context.addInitScript(() => {
@@ -1101,8 +1253,8 @@ async function ensureBrowser(): Promise<Page> {
             window.chrome = {
                 runtime: {},
                 loadTimes: function(){},
-                csi: function(){},
-                app: {},
+                                    csi: function(){},
+                                    app: {},
             };
 
             const originalToString = Error.prototype.toString;
@@ -1141,16 +1293,16 @@ async function ensureBrowser(): Promise<Page> {
         });
 
         page = await context.newPage();
-        
+
         await page.route('**', async (route) => {
             const request = route.request();
             if (request.resourceType() === 'script') {
                 route.continue({
                     headers: {
                         ...request.headers(),
-                        'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-                        'sec-ch-ua-mobile': '?0',
-                        'sec-ch-ua-platform': '"Windows"'
+                               'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+                               'sec-ch-ua-mobile': '?0',
+                               'sec-ch-ua-platform': '"Windows"'
                     }
                 });
             } else {
